@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import { connect } from 'react-redux';
+import { useSelector } from 'react-redux';
 import './App.css';
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -10,10 +10,10 @@ import styled from 'styled-components';
 
 import FriendlyHeader from './components/Header';
 import FriendlyFooter from './components/Footer';
-import AddEventCalendar from './containers/AddEventModalContainer';
-import UpdateViewCalendar from './containers/UpdateEventModalContainer';
-import FriendsCalendarContainer from './containers/FriendsCalendarContainer';
-import FriendsListContainer from './containers/FriendsListContainer';
+import FriendsList from './components/FriendsList';
+import FriendsCalendar from './components/FriendsCalendar';
+import AddEventModal from './components/AddEventModal';
+import UpdateEventModal from './components/UpdateEventModal';
 
 const { Header, Footer, Sider, Content } = Layout;
 
@@ -34,7 +34,11 @@ const StyledContent = styled(Content)`
   margin: 3rem;
 `;
 
-function App({ addModalOpen, updateModalOpen }) {
+function App() {
+  const addModalOpen = useSelector(state => state.modalReducer.addModalOpen);
+  const updateModalOpen = useSelector(
+    state => state.modalReducer.updateModalOpen
+  );
   return (
     <Router>
       <Layout>
@@ -45,10 +49,10 @@ function App({ addModalOpen, updateModalOpen }) {
           <Switch>
             <Route path="/calendar/:name">
               <StyledSider>
-                <FriendsListContainer />
+                <FriendsList />
               </StyledSider>
               <StyledContent>
-                <FriendsCalendarContainer />
+                <FriendsCalendar />
               </StyledContent>
             </Route>
           </Switch>
@@ -57,17 +61,10 @@ function App({ addModalOpen, updateModalOpen }) {
           <FriendlyFooter />
         </Footer>
       </Layout>
-      {addModalOpen && <AddEventCalendar />}
-      {updateModalOpen && <UpdateViewCalendar />}
+      {addModalOpen && <AddEventModal />}
+      {updateModalOpen && <UpdateEventModal />}
     </Router>
   );
 }
 
-const mapStateToProps = state => {
-  return {
-    addModalOpen: state.modalReducer.addModalOpen,
-    updateModalOpen: state.modalReducer.updateModalOpen
-  };
-};
-
-export default connect(mapStateToProps, null)(App);
+export default App;

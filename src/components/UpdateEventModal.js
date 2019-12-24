@@ -1,145 +1,96 @@
-/* eslint-disable react/jsx-wrap-multilines */
-/* eslint-disable react/state-in-constructor */
+/* eslint-disable react/no-unused-prop-types */
 
 'use es6';
 
-import React, { Component } from 'react';
-import { Modal, Icon, Typography, Row, Col, DatePicker } from 'antd';
+import React from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Modal, Icon, Row, Col, DatePicker, Input, Form } from 'antd';
 import moment from 'moment';
-
-const { Paragraph } = Typography;
+import PropTypes from 'prop-types';
+import { hideModal } from '../actions/modalActions';
+import useForm from '../hooks/useForm';
 
 const dateFormat = 'YYYY/MM/DD';
 
-class UpdateEventModal extends Component {
-  state = {
-    title: '',
-    startValue: null,
-    endValue: null,
-    endOpen: false
-  };
-
-  componentDidMount() {
-    const { activeEvent } = this.props;
-    this.setState({
-      title: activeEvent.title,
-      startValue: activeEvent.start,
-      endValue: activeEvent.end
-    });
-  }
-
-  disabledStartDate = startValue => {
-    const { endValue } = this.state;
-    if (!startValue || !endValue) {
-      return false;
-    }
-    return startValue.valueOf() > endValue.valueOf();
-  };
-
-  disabledEndDate = endValue => {
-    const { startValue } = this.state;
-    if (!endValue || !startValue) {
-      return false;
-    }
-    return endValue.valueOf() < startValue.valueOf();
-  };
-
-  onChange = (field, value) => {
-    this.setState({
-      [field]: value
-    });
-  };
-
-  onTitleChange = value => {
-    this.onChange('title', value);
-  };
-
-  onStartChange = value => {
-    this.onChange('startValue', value);
-  };
-
-  onEndChange = value => {
-    this.onChange('endValue', value);
-  };
-
-  handleStartOpenChange = open => {
-    if (!open) {
-      this.setState({ endOpen: true });
-    }
-  };
-
-  handleEndOpenChange = open => {
-    this.setState({ endOpen: open });
-  };
-
-  handleDelete = () => {
-    const { activeEvent, deleteEvent, hideModal } = this.props;
-    deleteEvent(activeEvent.id);
-    hideModal();
-  };
-
-  handleUpdateEvent = () => {
-    const { activeEvent, updateEvent, hideModal } = this.props;
-    const { title, startValue, endValue } = this.state;
-    const updates = {
-      title,
-      start: startValue,
-      end: endValue
-    };
-    updateEvent(activeEvent.id, updates);
-    hideModal();
-  };
-
-  render() {
-    const { modalOpen, hideModal } = this.props;
-    const { title, startValue, endValue, endOpen } = this.state;
-    return (
-      <Modal
-        title={
-          <Paragraph editable={{ onChange: this.onTitleChange }}>
-            {title}
-          </Paragraph>
-        }
-        onOk={this.handleUpdateEvent}
-        visible={modalOpen}
-        onCancel={hideModal}
-      >
+const UpdateEventModal = () => {
+  const dispatch = useDispatch();
+  const {
+    values,
+    endOpen,
+    disabledStartDate,
+    disabledEndDate,
+    handleTitleChange,
+    onStartChange,
+    onEndChange,
+    handleStartOpenChange,
+    handleEndOpenChange,
+    handleDelete,
+    handleUpdateEvent
+  } = useForm();
+  const updateModalOpen = useSelector(
+    state => state.modalReducer.updateModalOpen
+  );
+  const { title, startValue, endValue } = values;
+  return (
+    <Modal
+      title="Update event!!"
+      onOk={handleUpdateEvent}
+      visible={updateModalOpen}
+      onCancel={() => dispatch(hideModal())}
+    >
+      <Form>
+        <Form.Item label="Title:">
+          <Input name="title" value={title} onChange={handleTitleChange} />
+        </Form.Item>
         <Row>
           <Col span={12}>
-            <p>Start:</p>
-            <DatePicker
-              defaultValue={moment(startValue)}
-              defaultPickerValue={startValue}
-              value={moment(startValue)}
-              format={dateFormat}
-              onChange={this.onStartChange}
-              onOpenChange={this.handleStartOpenChange}
-            />
+            <Form.Item label="Start:">
+              <DatePicker
+                name="startValue"
+                disabledDate={disabledStartDate}
+                defaultValue={moment(startValue)}
+                defaultPickerValue={startValue}
+                value={moment(startValue)}
+                format={dateFormat}
+                onChange={onStartChange}
+                onOpenChange={handleStartOpenChange}
+              />
+            </Form.Item>
           </Col>
           <Col span={12}>
-            <p>End:</p>
-            <DatePicker
-              defaultValue={moment(endValue)}
-              defaultPickerValue={endValue}
-              value={moment(endValue)}
-              format={dateFormat}
-              onChange={this.onEndChange}
-              open={endOpen}
-              onOpenChange={this.handleEndOpenChange}
-            />
+            <Form.Item label="End:">
+              <DatePicker
+                disabledDate={disabledEndDate}
+                defaultValue={moment(endValue)}
+                defaultPickerValue={endValue}
+                value={moment(endValue)}
+                format={dateFormat}
+                onChange={onEndChange}
+                open={endOpen}
+                onOpenChange={handleEndOpenChange}
+              />
+            </Form.Item>
           </Col>
         </Row>
-        <Row>
-          <Col span={24}>
-            <div style={{ marginTop: '20px' }}>
-              <h3>Delete Event?</h3>
-              <Icon type="delete" onClick={this.handleDelete} />
-            </div>
-          </Col>
-        </Row>
-      </Modal>
-    );
-  }
-}
+        <Form.Item label="Delete Event?">
+          <Icon type="delete" onClick={handleDelete} />
+        </Form.Item>
+      </Form>
+    </Modal>
+  );
+};
+
+UpdateEventModal.propTypes = {
+  updateModalOpen: PropTypes.bool.isRequired,
+  disabledStartDate: PropTypes.func.isRequired,
+  disabledEndDate: PropTypes.func.isRequired,
+  handleUpdateEvent: PropTypes.func.isRequired,
+  handleDelete: PropTypes.func.isRequired,
+  onStartChange: PropTypes.func.isRequired,
+  onEndChange: PropTypes.func.isRequired,
+  endOpen: PropTypes.bool.isRequired,
+  handleStartOpenChange: PropTypes.func.isRequired,
+  handleEndOpenChange: PropTypes.func.isRequired
+};
 
 export default UpdateEventModal;
